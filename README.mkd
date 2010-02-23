@@ -13,8 +13,3 @@ To install for everyone:
 Once installed, to get help with basic usage and available options:
 
     vim2html -h
-
-To get more extensive documentation (requires
-[shdoc](http://github.com/jmcantrell/shdoc)):
-
-    shdoc vim2html [TOPIC]
