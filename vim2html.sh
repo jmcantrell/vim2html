@@ -3,7 +3,7 @@
 # Filename:      vim2html.sh
 # Description:   Convert source code to html using vim
 # Maintainer:    Jeremy Cantrell <jmcantrell@gmail.com>
-# Last Modified: Wed 2010-04-07 17:00:46 (-0400)
+# Last Modified: Thu 2010-04-22 22:04:08 (-0400)
 
 # Vim is really good at recognizing filetypes and highlighting the syntax in a
 # myriad of colorschemes. Vim is also good at turning that highlighted code
@@ -68,8 +68,8 @@ while getopts ":hifvqf:ntc:lL" option; do
         v) verbose 1 ;;
         q) verbose 0 ;;
 
-        h) usage_exit 0 ;;
-        *) usage_exit 1 ;;
+        h) usage 0 ;;
+        *) usage 1 ;;
     esac
 done && shift $(($OPTIND - 1))
 
@@ -79,16 +79,16 @@ if [[ ! -d $VIM_HOME ]]; then
     VIM_HOME=$(listdir /usr/share/vim -type d -name "vim*" | sort -r | head -n1)
 fi
 
-[[ $VIM_HOME ]] || error_exit "Could not find Vim home directory."
+[[ $VIM_HOME ]] || die "Could not find Vim home directory."
 
 INFILE=$1
 
 if [[ ! $INFILE ]]; then
-    error_exit "Input file not provided."
+    die "Input file not provided."
 fi
 
 if [[ ! -f $INFILE ]]; then
-    error_exit "Input file does not exist or is not a regular file."
+    die "Input file does not exist or is not a regular file."
 fi
 
 OUTFILE=$2
