@@ -3,7 +3,7 @@
 # Filename:      vim2html.sh
 # Description:   Convert source code to html using vim
 # Maintainer:    Jeremy Cantrell <jmcantrell@gmail.com>
-# Last Modified: Thu 2010-06-17 23:18:31 (-0400)
+# Last Modified: Sun 2010-06-20 13:13:14 (-0400)
 
 # Vim is really good at recognizing filetypes and highlighting the syntax in a
 # myriad of colorschemes. Vim is also good at turning that highlighted code
@@ -24,7 +24,7 @@ colorscheme_list() #{{{2
     {
         find "$VIM_HOME/colors" -name "*.vim"
         find "$HOME/.vim/colors" -name "*.vim"
-    } | xargs -i basename {} .vim | sort -u
+    } | xargs -I{} basename {} .vim | sort -u
 }
 
 # VARIABLES {{{1
