@@ -1,22 +1,8 @@
+Convert source code to html using vim.
+
 Installation
 ------------
 
 You will need to install the
 [bashful library](http://github.com/jmcantrell/bashful)
 before you can use vim2html.
-
-To install, run the included install script:
-
-    ./install [DIR]
-
-To install for yourself only (~/bin will need to be in your PATH):
-
-    ./install
-
-To install for everyone:
-
-    sudo ./install /usr/local/bin
-
-Once installed, to get help with basic usage and available options:
-
-    vim2html -h
