@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Filename:      vim2html.sh
+# Filename:      vim2html
 # Description:   Convert source code to html using vim
 # Maintainer:    Jeremy Cantrell <jmcantrell@gmail.com>
-# Last Modified: Sat 2010-10-02 15:08:33 (-0400)
+# Last Modified: Sun 2010-10-03 02:58:16 (-0400)
 
 # Vim is really good at recognizing filetypes and highlighting the syntax in a
 # myriad of colorschemes. Vim is also good at turning that highlighted code
