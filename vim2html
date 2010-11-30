@@ -3,7 +3,7 @@
 # Filename:      vim2html
 # Description:   Convert source code to html using vim
 # Maintainer:    Jeremy Cantrell <jmcantrell@gmail.com>
-# Last Modified: Tue 2010-11-30 00:16:21 (-0500)
+# Last Modified: Tue 2010-11-30 00:28:55 (-0500)
 
 # Vim is really good at recognizing filetypes and highlighting the syntax in a
 # myriad of colorschemes. Vim is also good at turning that highlighted code
@@ -23,12 +23,12 @@ SCRIPT_NAME=$(basename "$0" .sh)
 SCRIPT_ARGUMENTS="INPUT [OUTPUT]"
 SCRIPT_USAGE="Convert source code to html using vim."
 SCRIPT_OPTIONS="
--f FILETYPE       Use FILETYPE as vim filetype.
--n                Output line numbers.
--F                Allow folds.
--t                Use tidy to cleanup HTML.
+-t FILETYPE       Use FILETYPE as vim filetype.
 -c COLORSCHEME    Use COLORSCHEME as vim colorscheme.
+-n                Output line numbers.
+-f                Allow folds.
 -l                Use light background.
+-T                Use tidy to cleanup HTML.
 "
 
 VIM_CMD="vim -n -N"
@@ -45,11 +45,11 @@ unset OPTIND
 while getopts ":hifvqf:nt:c:lT" option; do
     case $option in
         t) FILETYPE=$OPTARG ;;
-        n) LINE_NUMBERS=1 ;;
-        f) FOLDING=1 ;;
         c) COLORSCHEME=$OPTARG ;;
-        T) TIDY=1 ;;
+        n) NUMBERED=1 ;;
+        f) FOLDING=1 ;;
         l) BACKGROUND=light ;;
+        T) TIDY=1 ;;
 
         i) interactive 1 ;;
         f) interactive 0 ;;
@@ -111,7 +111,7 @@ EOF
 
     [[ $FILETYPE ]] && echo "set ft=$FILETYPE"
 
-    if [[ $LINE_NUMBERS ]]; then
+    if [[ $NUMBERED ]]; then
         echo "set number"
     else
         echo "set nonumber"
