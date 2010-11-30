@@ -3,7 +3,7 @@
 # Filename:      vim2html
 # Description:   Convert source code to html using vim
 # Maintainer:    Jeremy Cantrell <jmcantrell@gmail.com>
-# Last Modified: Sun 2010-10-03 02:58:16 (-0400)
+# Last Modified: Tue 2010-11-30 00:16:21 (-0500)
 
 # Vim is really good at recognizing filetypes and highlighting the syntax in a
 # myriad of colorschemes. Vim is also good at turning that highlighted code
@@ -17,16 +17,6 @@ source bashful-input
 source bashful-messages
 source bashful-modes
 
-# FUNCTIONS {{{1
-
-colorscheme_list() #{{{2
-{
-    {
-        find "$VIM_HOME/colors" -name "*.vim"
-        find "$HOME/.vim/colors" -name "*.vim"
-    } | xargs -I{} basename {} .vim | sort -u
-}
-
 # VARIABLES {{{1
 
 SCRIPT_NAME=$(basename "$0" .sh)
@@ -35,16 +25,16 @@ SCRIPT_USAGE="Convert source code to html using vim."
 SCRIPT_OPTIONS="
 -f FILETYPE       Use FILETYPE as vim filetype.
 -n                Output line numbers.
+-F                Allow folds.
 -t                Use tidy to cleanup HTML.
 -c COLORSCHEME    Use COLORSCHEME as vim colorscheme.
 -l                Use light background.
--L                List available vim colorschemes.
 "
 
-VIM_CMD="vim -n -u NONE"
-VIM_HOME=/usr/share/vim/vimcurrent
+VIM_CMD="vim -n -N"
 COLORSCHEME=inkpot
 BACKGROUND=dark
+VIM_HOME=$(listdir /usr/share/vim -type d -name "vim*" | sort -r | head -n1)
 
 interactive ${INTERACTIVE:-0}
 verbose     ${VERBOSE:-0}
@@ -52,15 +42,14 @@ verbose     ${VERBOSE:-0}
 # COMMAND-LINE OPTIONS {{{1
 
 unset OPTIND
-while getopts ":hifvqf:ntc:lL" option; do
+while getopts ":hifvqf:nt:c:lT" option; do
     case $option in
-        f) FILETYPE=$OPTARG ;;
+        t) FILETYPE=$OPTARG ;;
         n) LINE_NUMBERS=1 ;;
-        t) TIDY=1 ;;
+        f) FOLDING=1 ;;
         c) COLORSCHEME=$OPTARG ;;
+        T) TIDY=1 ;;
         l) BACKGROUND=light ;;
-
-        L) colorscheme_list; exit 0 ;;
 
         i) interactive 1 ;;
         f) interactive 0 ;;
@@ -74,10 +63,6 @@ while getopts ":hifvqf:ntc:lL" option; do
 done && shift $(($OPTIND - 1))
 
 # ERROR CHECKING {{{1
-
-if [[ ! -d $VIM_HOME ]]; then
-    VIM_HOME=$(listdir /usr/share/vim -type d -name "vim*" | sort -r | head -n1)
-fi
 
 [[ $VIM_HOME ]] || die "Could not find Vim home directory."
 
@@ -108,27 +93,38 @@ tempfile || exit 1
 : >$TEMPFILE
 
 cat >>$TEMPFILE<<-EOF
-set nocompatible
 syntax on
 set t_Co=256
 set expandtabs
 set tabstop=4
 set background=$BACKGROUND
-let html_ignore_folding = 1
-let html_use_css = 1
+let g:html_use_css = 1
 EOF
 
 {
-    [[ $FILETYPE ]]     && echo "set ft=$FILETYPE"
-    [[ $LINE_NUMBERS ]] && echo "set nu"
-    [[ $COLORSCHEME ]]  && echo "colorscheme $COLORSCHEME"
+    if [[ $FOLDING ]]; then
+        echo "set foldmethod=marker"
+        echo "let g:html_dynamic_folds = 1"
+    else
+        echo "let g:html_ignore_folding = 1"
+    fi
+
+    [[ $FILETYPE ]] && echo "set ft=$FILETYPE"
+
+    if [[ $LINE_NUMBERS ]]; then
+        echo "set number"
+    else
+        echo "set nonumber"
+    fi
+
+    [[ $COLORSCHEME ]] && echo "colorscheme $COLORSCHEME"
+
 } >>$TEMPFILE
 
 cat >>$TEMPFILE<<-EOF
-runtime! syntax/2html.vim
+TOhtml
 w! $OUTFILE
-q!
-q!
+qa!
 EOF
 #}}}
 
