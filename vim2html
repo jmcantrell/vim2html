@@ -3,7 +3,7 @@
 # Filename:      vim2html
 # Description:   Convert source code to html using vim
 # Maintainer:    Jeremy Cantrell <jmcantrell@gmail.com>
-# Last Modified: Tue 2010-11-30 00:28:55 (-0500)
+# Last Modified: Wed 2010-12-01 15:40:31 (-0500)
 
 # Vim is really good at recognizing filetypes and highlighting the syntax in a
 # myriad of colorschemes. Vim is also good at turning that highlighted code
@@ -17,6 +17,36 @@ source bashful-input
 source bashful-messages
 source bashful-modes
 
+# FUNCTIONS {{{1
+
+let_value()
+{
+    [[ $2 ]] && echo "let $1=$2"
+}
+
+set_value()
+{
+    [[ $2 ]] && echo "set $1=$2"
+}
+
+set_boolean()
+{
+    [[ $2 ]] && echo "set $1"
+}
+
+colorscheme()
+{
+    [[ $1 ]] && echo "colorscheme $1"
+}
+
+set_folding()
+{
+    if [[ $FOLDING ]]; then
+        set_value foldmethod marker
+        let_value g:html_dynamic_folds 1
+    fi
+}
+
 # VARIABLES {{{1
 
 SCRIPT_NAME=$(basename "$0" .sh)
@@ -25,16 +55,13 @@ SCRIPT_USAGE="Convert source code to html using vim."
 SCRIPT_OPTIONS="
 -t FILETYPE       Use FILETYPE as vim filetype.
 -c COLORSCHEME    Use COLORSCHEME as vim colorscheme.
+-s TABSTOP        Use TABSTOP for vim tabstop.
 -n                Output line numbers.
 -f                Allow folds.
 -l                Use light background.
+-x                Ignore user configs.
 -T                Use tidy to cleanup HTML.
 "
-
-VIM_CMD="vim -n -N"
-COLORSCHEME=inkpot
-BACKGROUND=dark
-VIM_HOME=$(listdir /usr/share/vim -type d -name "vim*" | sort -r | head -n1)
 
 interactive ${INTERACTIVE:-0}
 verbose     ${VERBOSE:-0}
@@ -42,14 +69,17 @@ verbose     ${VERBOSE:-0}
 # COMMAND-LINE OPTIONS {{{1
 
 unset OPTIND
-while getopts ":hifvqf:nt:c:lT" option; do
+while getopts ":hifvqf:nt:c:lTs:x" option; do
     case $option in
         t) FILETYPE=$OPTARG ;;
         c) COLORSCHEME=$OPTARG ;;
+        s) TABSTOP=$OPTARG ;;
         n) NUMBERED=1 ;;
         f) FOLDING=1 ;;
         l) BACKGROUND=light ;;
+        d) BACKGROUND=dark ;;
         T) TIDY=1 ;;
+        x) NORC=1 ;;
 
         i) interactive 1 ;;
         f) interactive 0 ;;
@@ -63,8 +93,6 @@ while getopts ":hifvqf:nt:c:lT" option; do
 done && shift $(($OPTIND - 1))
 
 # ERROR CHECKING {{{1
-
-[[ $VIM_HOME ]] || die "Could not find Vim home directory."
 
 INFILE=$1
 
@@ -96,28 +124,18 @@ cat >>$TEMPFILE<<-EOF
 syntax on
 set t_Co=256
 set expandtabs
-set tabstop=4
-set background=$BACKGROUND
 let g:html_use_css = 1
 EOF
 
 {
-    if [[ $FOLDING ]]; then
-        echo "set foldmethod=marker"
-        echo "let g:html_dynamic_folds = 1"
-    else
-        echo "let g:html_ignore_folding = 1"
-    fi
+    set_value   tabstop    $TABSTOP
+    set_value   background $BACKGROUND
+    set_value   filetype   $FILETYPE
+    set_boolean number     $NUMBERED
 
-    [[ $FILETYPE ]] && echo "set ft=$FILETYPE"
+    colorscheme $COLORSCHEME
 
-    if [[ $NUMBERED ]]; then
-        echo "set number"
-    else
-        echo "set nonumber"
-    fi
-
-    [[ $COLORSCHEME ]] && echo "colorscheme $COLORSCHEME"
+    set_folding
 
 } >>$TEMPFILE
 
@@ -129,7 +147,9 @@ EOF
 #}}}
 
 info -c "Converting file '$INFILE' to '$OUTFILE'..."
-$VIM_CMD -S "$TEMPFILE" "$INFILE" >/dev/null 2>&1
+
+vim -n -N ${NORC:+-u NORC} -S "$TEMPFILE" "$INFILE" >/dev/null 2>&1
+
 sed -i "s%<title>.*</title>%<title>$(basename "$INFILE")</title>%" "$OUTFILE"
 
 if [[ $TIDY ]]; then
